@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sortable Fixed</title>
+    <link href="st/app.css" rel="stylesheet" type="text/css"/>
+    <style>
+        .fixed {
+            outline: 2px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="multi">
+        <div>
+            <div data-force="5" class="layer title title_xl">Multi</div>
+        </div>
+
+        <div class="layer tile" data-force="30">
+            <div class="tile__name">Group A</div>
+            <div class="tile__list">
+                <img src="st/face-01.jpg"/><!--
+					--><img src="st/face-03.jpg" class="fixed"/><!--
+					--><img src="st/face-04.jpg"/>
+            </div>
+        </div>
+
+        <div class="layer tile" data-force="25">
+            <div class="tile__name">Group B</div>
+            <div class="tile__list">
+                <img src="st/face-05.jpg"/><!--
+					--><img src="st/face-06.jpg" class="fixed"/><!--
+					--><img src="st/face-07.jpg"/>
+            </div>
+        </div>
+
+        <div class="layer tile" data-force="20">
+            <div class="tile__name">Group C</div>
+            <div class="tile__list">
+                <img src="st/face-08.jpg"/><!--
+					--><img src="st/face-09.jpg"/><!--
+					--><img src="st/face-02.jpg" class="fixed"/><!--
+					--><img src="st/face-05.jpg"/>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script src="Sortable.js"></script>
+<script>
+    var byId = function (id) {
+        return document.getElementById(id);
+    };
+
+    Sortable.prototype.moveElement = function (indx, /**int*/direction) {
+        var list = Array.prototype.slice.call(this.el.children);
+
+        if (direction < 0) {
+            for (var i = this.el.children.length - 1; i >= indx; i--) {
+                if (list[i].classList.contains('fixed')) {
+                    this.swap(list[i], list[i + 1]);
+                    list = Array.prototype.slice.call(this.el.children);
+                }
+            }
+        } else if (direction > 0) {
+            for (var i = indx; i <= this.el.children.length - 1; i++) {
+                if (list[i].classList.contains('fixed')) {
+                    this.swap(list[i], list[i - 1]);
+                    list = Array.prototype.slice.call(this.el.children);
+                }
+            }
+        }
+    };
+    Sortable.prototype.isCanMove = function () {
+        var list = Array.prototype.slice.call(this.el.children);
+        return !list[this.el.children.length - 1].classList.contains('fixed');
+    };
+    // Multi groups
+    Sortable.create(byId('multi'), {
+        animation: 150,
+        draggable: '.tile',
+        handle: '.tile__name'
+    });
+
+    [].forEach.call(byId('multi').getElementsByClassName('tile__list'), function (el) {
+        Sortable.create(el, {
+            group: 'photo',
+            animation: 150,
+        });
+    });
+</script>
+</body>
+</html>

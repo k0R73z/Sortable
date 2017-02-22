@@ -773,7 +773,21 @@
 							if (after && !nextSibling) {
 								el.appendChild(dragEl);
 							} else {
-								target.parentNode.insertBefore(dragEl, after ? nextSibling : target);
+								if (after) {
+									target.parentNode.insertBefore(dragEl, nextSibling);
+								} else {
+									if (target.classList.contains('fixed')) {
+										console.log('find next unfixed', after);
+										/**
+										 * TODO:
+										 * 1. Определить в какую сторону идет смена
+										 * 2. Определить элементы
+										 * 3. Поменять местами
+										 * */
+									} else {
+										target.parentNode.insertBefore(dragEl, target);
+									}
+								}
 							}
 						}
 
@@ -1350,6 +1364,13 @@
 			);
 	}
 
+	function _swap(from, to) {
+		var temp = document.createElement("div");
+		from.parentNode.insertBefore(temp, from);
+		to.parentNode.insertBefore(from, to);
+		temp.parentNode.insertBefore(to, temp);
+		temp.parentNode.removeChild(temp);
+	}
 
 	// Export utils
 	Sortable.utils = {
@@ -1365,7 +1386,8 @@
 		closest: _closest,
 		toggleClass: _toggleClass,
 		clone: _clone,
-		index: _index
+		index: _index,
+		swap: _swap
 	};
 
 
