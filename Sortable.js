@@ -464,11 +464,11 @@
 			}
 
 			try {
-				if (document.selection) {					
-					// Timeout neccessary for IE9					
+				if (document.selection) {
+					// Timeout neccessary for IE9
 					setTimeout(function () {
 						document.selection.empty();
-					});					
+					});
 				} else {
 					window.getSelection().removeAllRanges();
 				}
@@ -770,24 +770,95 @@
 						}
 
 						if (!dragEl.contains(el)) {
+                            var nodeList = Array.prototype.slice.call( el.children );
+
+                            var targetIndex = nodeList.indexOf( target ), domVector = targetIndex > oldIndex, domCnt = Math.abs(targetIndex-oldIndex);
 							if (after && !nextSibling) {
-								el.appendChild(dragEl);
+                                if (target.classList.contains('fixed')) {
+                                    alert('нужен элемент');
+                                    return false;
+                                } else {
+                                    if (domCnt > 1) {
+                                        /**
+                                         * Проверим есть ли фикс элементы между целью и источником, если есть то используем swap
+                                         */
+                                        var useSwap = false;
+                                        if (!domVector) {
+                                            for (var i = oldIndex; i >= targetIndex; i--) {
+                                                if (nodeList[i].classList.contains('fixed')) {
+                                                    useSwap = true;
+                                                }
+                                            }
+                                        } else {
+                                            for (var i = oldIndex; i <= targetIndex; i++) {
+                                                if (nodeList[i].classList.contains('fixed')) {
+                                                    useSwap = true;
+                                                }
+                                            }
+                                        }
+                                        console.log(domVector, useSwap);
+                                        if (useSwap) {
+                                            console.log(dragEl, target);
+                                            _swap(dragEl, target);
+                                        }
+                                    } else {
+                                        el.appendChild(dragEl);
+                                    }
+                                }
 							} else {
-								if (after) {
-									target.parentNode.insertBefore(dragEl, nextSibling);
-								} else {
-									if (target.classList.contains('fixed')) {
-										console.log('find next unfixed', after);
-										/**
-										 * TODO:
-										 * 1. Определить в какую сторону идет смена
-										 * 2. Определить элементы
-										 * 3. Поменять местами
-										 * */
-									} else {
-										target.parentNode.insertBefore(dragEl, target);
-									}
-								}
+                                    if (target.classList.contains('fixed')) {
+                                        var swp = target, found = false;
+
+                                        while (!found) {
+
+                                            if (!domVector) {
+                                                swp = swp.previousElementSibling;
+                                            } else {
+                                                swp = swp.nextElementSibling;
+                                            }
+
+                                            if (!swp) {
+                                                alert('нужен элемент');
+                                                return false;
+                                            }
+                                            if (!swp.classList.contains('fixed'))
+                                                found = true;
+                                        }
+                                        _swap(dragEl, swp);
+                                    } else {
+                                        if (domCnt > 1) {
+                                            /**
+                                             * Проверим есть ли фикс элементы между целью и источником, если есть то используем swap
+                                             */
+                                            var useSwap = false;
+                                            if (!domVector) {
+                                                console.log(oldIndex, targetIndex);
+                                                for (var i = oldIndex; i >= targetIndex; i--) {
+                                                    if (nodeList[i].classList.contains('fixed')) {
+                                                        useSwap = true;
+                                                    }
+                                                }
+                                            } else {
+                                                for (var i = oldIndex; i <= targetIndex; i++) {
+                                                    if (nodeList[i].classList.contains('fixed')) {
+                                                        useSwap = true;
+                                                    }
+                                                }
+                                            }
+                                            console.log(domVector, useSwap);
+                                            if (useSwap) {
+                                                console.log(dragEl, target);
+                                                _swap(dragEl, target);
+                                            }
+                                        } else {
+                                            if (after) {
+                                                target.parentNode.insertBefore(dragEl, nextSibling);
+                                            } else {
+                                                target.parentNode.insertBefore(dragEl, target);
+                                            }
+                                        }
+
+                                }
 							}
 						}
 
