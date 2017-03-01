@@ -696,6 +696,7 @@
 						rootEl.appendChild(dragEl);
 					}
 
+					console.log('unrecognized moving');
 					return;
 				}
 
@@ -715,7 +716,16 @@
 
 					if (_onMove(rootEl, el, dragEl, dragRect, target, targetRect, evt) !== false) {
 						if (!dragEl.contains(el)) {
+							var nodeList = Array.prototype.slice.call(el.children), sourceIndex = nodeList.indexOf(dragEl);
 							el.appendChild(dragEl);
+							nodeList = Array.prototype.slice.call(el.children);
+							for (var i = nodeList.length - 1; i >= sourceIndex; i--) {
+								if (nodeList[i].classList.contains('fixed')) {
+									dragEl.parentNode.insertBefore(nodeList[i + 1], nodeList[i]);
+									nodeList = Array.prototype.slice.call(el.children);
+								}
+							}
+
 							parentEl = el; // actualization
 						}
 
@@ -729,7 +739,7 @@
 						lastCSS = _css(target);
 						lastParentCSS = _css(target.parentNode);
 					}
-					console.log('b');
+
 					targetRect = target.getBoundingClientRect();
 
 					var width = targetRect.right - targetRect.left,
@@ -772,92 +782,62 @@
 						if (!dragEl.contains(el)) {
                             var nodeList = Array.prototype.slice.call( el.children );
 
-                            var targetIndex = nodeList.indexOf( target ), domVector = targetIndex > oldIndex, domCnt = Math.abs(targetIndex-oldIndex);
+                            var targetIndex = nodeList.indexOf( target ), sourceIndex = nodeList.indexOf( dragEl ), domVector = targetIndex > sourceIndex;
 							if (after && !nextSibling) {
+
                                 if (target.classList.contains('fixed')) {
                                     alert('нужен элемент');
                                     return false;
                                 } else {
-                                    if (domCnt > 1) {
-                                        /**
-                                         * Проверим есть ли фикс элементы между целью и источником, если есть то используем swap
-                                         */
-                                        var useSwap = false;
-                                        if (!domVector) {
-                                            for (var i = oldIndex; i >= targetIndex; i--) {
-                                                if (nodeList[i].classList.contains('fixed')) {
-                                                    useSwap = true;
-                                                }
-                                            }
-                                        } else {
-                                            for (var i = oldIndex; i <= targetIndex; i++) {
-                                                if (nodeList[i].classList.contains('fixed')) {
-                                                    useSwap = true;
-                                                }
-                                            }
-                                        }
-                                        console.log(domVector, useSwap);
-                                        if (useSwap) {
-                                            console.log(dragEl, target);
-                                            _swap(dragEl, target);
-                                        }
-                                    } else {
-                                        el.appendChild(dragEl);
-                                    }
+									el.appendChild(dragEl);
+									nodeList = Array.prototype.slice.call(el.children);
+									for (var i = nodeList.length - 1; i >= sourceIndex; i--) {
+										if (nodeList[i].classList.contains('fixed')) {
+											dragEl.parentNode.insertBefore(nodeList[i + 1], nodeList[i]);
+											nodeList = Array.prototype.slice.call(el.children);
+										}
+									}
                                 }
 							} else {
                                     if (target.classList.contains('fixed')) {
-                                        var swp = target, found = false;
 
-                                        while (!found) {
-
-                                            if (!domVector) {
-                                                swp = swp.previousElementSibling;
-                                            } else {
-                                                swp = swp.nextElementSibling;
-                                            }
-
-                                            if (!swp) {
-                                                alert('нужен элемент');
-                                                return false;
-                                            }
-                                            if (!swp.classList.contains('fixed'))
-                                                found = true;
-                                        }
-                                        _swap(dragEl, swp);
                                     } else {
-                                        if (domCnt > 1) {
-                                            /**
-                                             * Проверим есть ли фикс элементы между целью и источником, если есть то используем swap
-                                             */
-                                            var useSwap = false;
-                                            if (!domVector) {
-                                                console.log(oldIndex, targetIndex);
-                                                for (var i = oldIndex; i >= targetIndex; i--) {
-                                                    if (nodeList[i].classList.contains('fixed')) {
-                                                        useSwap = true;
-                                                    }
-                                                }
-                                            } else {
-                                                for (var i = oldIndex; i <= targetIndex; i++) {
-                                                    if (nodeList[i].classList.contains('fixed')) {
-                                                        useSwap = true;
-                                                    }
-                                                }
-                                            }
-                                            console.log(domVector, useSwap);
-                                            if (useSwap) {
-                                                console.log(dragEl, target);
-                                                _swap(dragEl, target);
-                                            }
-                                        } else {
-                                            if (after) {
-                                                target.parentNode.insertBefore(dragEl, nextSibling);
-                                            } else {
-                                                target.parentNode.insertBefore(dragEl, target);
-                                            }
-                                        }
+										if (after) {
+											target.parentNode.insertBefore(dragEl, nextSibling);
+											console.log('after');
+										} else {
+											var prev = dragEl.previousElementSibling;
+											target.parentNode.insertBefore(dragEl, target);
+											console.log('before');
+											nodeList = Array.prototype.slice.call( el.children );
+											if (!domVector) {
+												for (var i = targetIndex; i < sourceIndex; i++) {
+													var nxt = nodeList[i+1] || null;
+													if (nxt) {
+														var afterFixed = nodeList[i+2] || null;
+														if (nxt.classList.contains('fixed')) {
+															if (afterFixed) {
+																afterFixed.parentNode.insertBefore(nodeList[i], afterFixed);
+															} else {
+																el.appendChild(nodeList[i]);
+															}
+															nodeList = Array.prototype.slice.call( el.children );
+														}
+													}
+												}
+											} else {
+												if (!prev) {
+													target.parentNode.insertBefore(target, el.firstChild);
+												} else {
+													for (var i = targetIndex; i > sourceIndex; i--) {
+														if (!nodeList[i].classList.contains('fixed')) {
+															target.parentNode.insertBefore(target, nodeList[i - 1]);
+														}
+													}
+												}
 
+											}
+										}
                                 }
 							}
 						}
