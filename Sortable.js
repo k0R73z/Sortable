@@ -700,7 +700,10 @@
 					return;
 				}
 
-
+				console.log(rootEl.contains(dragEl));
+if (!rootEl.contains(dragEl)) {
+	console.log('removed');
+}
 				if ((el.children.length === 0) || (el.children[0] === ghostEl) ||
 					(el === evt.target) && (target = _ghostIsLast(el, evt))
 				) {
@@ -716,13 +719,16 @@
 
 					if (_onMove(rootEl, el, dragEl, dragRect, target, targetRect, evt) !== false) {
 						if (!dragEl.contains(el)) {
+
 							var nodeList = Array.prototype.slice.call(el.children), sourceIndex = nodeList.indexOf(dragEl);
 							el.appendChild(dragEl);
 							nodeList = Array.prototype.slice.call(el.children);
 							for (var i = nodeList.length - 1; i >= sourceIndex; i--) {
 								if (nodeList[i].classList.contains('fixed')) {
-									dragEl.parentNode.insertBefore(nodeList[i + 1], nodeList[i]);
-									nodeList = Array.prototype.slice.call(el.children);
+									if (nodeList[i + 1]) {
+										dragEl.parentNode.insertBefore(nodeList[i + 1], nodeList[i]);
+										nodeList = Array.prototype.slice.call(el.children);
+									}
 								}
 							}
 
@@ -784,10 +790,8 @@
 
                             var targetIndex = nodeList.indexOf( target ), sourceIndex = nodeList.indexOf( dragEl ), domVector = targetIndex > sourceIndex;
 							if (after && !nextSibling) {
-
                                 if (target.classList.contains('fixed')) {
-                                    alert('нужен элемент');
-                                    return false;
+
                                 } else {
 									el.appendChild(dragEl);
 									nodeList = Array.prototype.slice.call(el.children);
@@ -803,8 +807,18 @@
 
                                     } else {
 										if (after) {
+											var prev = dragEl.previousElementSibling;
+											nodeList = Array.prototype.slice.call( el.children );
 											target.parentNode.insertBefore(dragEl, nextSibling);
-											console.log('after');
+											 if (!prev) {
+											 	target.parentNode.insertBefore(target, el.firstChild);
+											} else {
+											 	for (var i = targetIndex; i > sourceIndex; i--) {
+											 		if (!nodeList[i].classList.contains('fixed')) {
+											 			target.parentNode.insertBefore(target, nodeList[i - 1]);
+											 		}
+											 	}
+											 }
 										} else {
 											var prev = dragEl.previousElementSibling;
 											target.parentNode.insertBefore(dragEl, target);
@@ -826,7 +840,8 @@
 													}
 												}
 											} else {
-												if (!prev) {
+												if (!prev && rootEl.contains(dragEl)) {
+													console.log('aa');
 													target.parentNode.insertBefore(target, el.firstChild);
 												} else {
 													for (var i = targetIndex; i > sourceIndex; i--) {
@@ -1415,14 +1430,6 @@
 			);
 	}
 
-	function _swap(from, to) {
-		var temp = document.createElement("div");
-		from.parentNode.insertBefore(temp, from);
-		to.parentNode.insertBefore(from, to);
-		temp.parentNode.insertBefore(to, temp);
-		temp.parentNode.removeChild(temp);
-	}
-
 	// Export utils
 	Sortable.utils = {
 		on: _on,
@@ -1437,8 +1444,7 @@
 		closest: _closest,
 		toggleClass: _toggleClass,
 		clone: _clone,
-		index: _index,
-		swap: _swap
+		index: _index
 	};
 
 
