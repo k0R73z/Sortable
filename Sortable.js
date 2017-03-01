@@ -655,6 +655,7 @@
 				group = options.group,
 				activeSortable = Sortable.active,
 				isOwner = (activeGroup === group),
+				removed = false,
 				canSort = options.sort;
 
 			if (evt.preventDefault !== void 0) {
@@ -700,10 +701,7 @@
 					return;
 				}
 
-				console.log(rootEl.contains(dragEl));
-if (!rootEl.contains(dragEl)) {
-	console.log('removed');
-}
+
 				if ((el.children.length === 0) || (el.children[0] === ghostEl) ||
 					(el === evt.target) && (target = _ghostIsLast(el, evt))
 				) {
@@ -760,7 +758,7 @@ if (!rootEl.contains(dragEl)) {
 						after
 					;
 
-					if (moveVector !== false) {
+					if (moveVector !== false && !target.classList.contains('fixed')) {
 						_silent = true;
 						setTimeout(_unsilent, 30);
 
@@ -789,71 +787,83 @@ if (!rootEl.contains(dragEl)) {
                             var nodeList = Array.prototype.slice.call( el.children );
 
                             var targetIndex = nodeList.indexOf( target ), sourceIndex = nodeList.indexOf( dragEl ), domVector = targetIndex > sourceIndex;
+
 							if (after && !nextSibling) {
-                                if (target.classList.contains('fixed')) {
-
-                                } else {
-									el.appendChild(dragEl);
-									nodeList = Array.prototype.slice.call(el.children);
-									for (var i = nodeList.length - 1; i >= sourceIndex; i--) {
-										if (nodeList[i].classList.contains('fixed')) {
-											dragEl.parentNode.insertBefore(nodeList[i + 1], nodeList[i]);
-											nodeList = Array.prototype.slice.call(el.children);
-										}
+								el.appendChild(dragEl);
+								nodeList = Array.prototype.slice.call(el.children);
+								for (var i = nodeList.length - 1; i >= sourceIndex; i--) {
+									if (nodeList[i].classList.contains('fixed')) {
+										dragEl.parentNode.insertBefore(nodeList[i + 1], nodeList[i]);
+										nodeList = Array.prototype.slice.call(el.children);
 									}
-                                }
+								}
 							} else {
-                                    if (target.classList.contains('fixed')) {
+								if (after) {
+									var prev = dragEl.previousElementSibling;
+									nodeList = Array.prototype.slice.call(el.children);
+									target.parentNode.insertBefore(dragEl, nextSibling);
 
-                                    } else {
-										if (after) {
-											var prev = dragEl.previousElementSibling;
-											nodeList = Array.prototype.slice.call( el.children );
-											target.parentNode.insertBefore(dragEl, nextSibling);
-											 if (!prev) {
-											 	target.parentNode.insertBefore(target, el.firstChild);
-											} else {
-											 	for (var i = targetIndex; i > sourceIndex; i--) {
-											 		if (!nodeList[i].classList.contains('fixed')) {
-											 			target.parentNode.insertBefore(target, nodeList[i - 1]);
-											 		}
-											 	}
-											 }
-										} else {
-											var prev = dragEl.previousElementSibling;
-											target.parentNode.insertBefore(dragEl, target);
-											console.log('before');
-											nodeList = Array.prototype.slice.call( el.children );
-											if (!domVector) {
-												for (var i = targetIndex; i < sourceIndex; i++) {
-													var nxt = nodeList[i+1] || null;
-													if (nxt) {
-														var afterFixed = nodeList[i+2] || null;
-														if (nxt.classList.contains('fixed')) {
-															if (afterFixed) {
-																afterFixed.parentNode.insertBefore(nodeList[i], afterFixed);
-															} else {
-																el.appendChild(nodeList[i]);
-															}
-															nodeList = Array.prototype.slice.call( el.children );
-														}
-													}
-												}
-											} else {
-												if (!prev && rootEl.contains(dragEl)) {
-													console.log('aa');
-													target.parentNode.insertBefore(target, el.firstChild);
-												} else {
-													for (var i = targetIndex; i > sourceIndex; i--) {
-														if (!nodeList[i].classList.contains('fixed')) {
-															target.parentNode.insertBefore(target, nodeList[i - 1]);
-														}
-													}
-												}
-
+									if (!prev) {
+										target.parentNode.insertBefore(target, el.firstChild);
+									} else {
+										for (var i = targetIndex; i > sourceIndex; i--) {
+											if (!nodeList[i].classList.contains('fixed')) {
+												target.parentNode.insertBefore(target, nodeList[i - 1]);
 											}
 										}
-                                }
+									}
+								} else {
+									var prev = dragEl.previousElementSibling;
+									target.parentNode.insertBefore(dragEl, target);
+									console.log('before');
+									if (!rootEl.contains(dragEl)) {
+										//TODO: удаление
+										console.log('removed', rootEl,oldIndex);
+										var rootNodesList = Array.prototype.slice.call(rootEl.children), l = oldIndex;
+										for (var i = oldIndex; i < rootNodesList.length-1; i++) {
+											if (rootNodesList[i].classList.contains('fixed')) {
+												continue;
+											} else {
+												rootEl.insertBefore(rootNodesList[i], rootNodesList[l]);
+												//rootNodesList = Array.prototype.slice.call(rootEl.children);
+												l=i+1;
+												console.log(l, rootNodesList);
+
+											}
+
+										}
+									}
+									nodeList = Array.prototype.slice.call(el.children);
+									if (!domVector) {
+										for (var i = targetIndex; i < sourceIndex; i++) {
+											var nxt = nodeList[i + 1] || null;
+											if (nxt) {
+												var afterFixed = nodeList[i + 2] || null;
+												if (nxt.classList.contains('fixed')) {
+													if (afterFixed) {
+														afterFixed.parentNode.insertBefore(nodeList[i], afterFixed);
+													} else {
+														el.appendChild(nodeList[i]);
+													}
+													nodeList = Array.prototype.slice.call(el.children);
+												}
+											}
+										}
+									} else {
+										if (!prev && rootEl.contains(dragEl)) {
+											console.log('aa');
+											target.parentNode.insertBefore(target, el.firstChild);
+										} else {
+											for (var i = targetIndex; i > sourceIndex; i--) {
+												if (!nodeList[i].classList.contains('fixed')) {
+													target.parentNode.insertBefore(target, nodeList[i - 1]);
+												}
+											}
+										}
+
+									}
+
+								}
 							}
 						}
 
