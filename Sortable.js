@@ -729,7 +729,7 @@
 						lastCSS = _css(target);
 						lastParentCSS = _css(target.parentNode);
 					}
-
+					console.log('b');
 					targetRect = target.getBoundingClientRect();
 
 					var width = targetRect.right - targetRect.left,
