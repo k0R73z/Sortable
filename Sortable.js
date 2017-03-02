@@ -816,21 +816,17 @@
 									var prev = dragEl.previousElementSibling;
 									target.parentNode.insertBefore(dragEl, target);
 									console.log('before');
+									//TODO: удаление из списка родителя
 									if (!rootEl.contains(dragEl)) {
-										//TODO: удаление
-										console.log('removed', rootEl,oldIndex);
 										var rootNodesList = Array.prototype.slice.call(rootEl.children), l = oldIndex;
-										for (var i = oldIndex; i < rootNodesList.length-1; i++) {
+										for (var i = oldIndex; i < rootNodesList.length; i++) {
 											if (rootNodesList[i].classList.contains('fixed')) {
 												continue;
 											} else {
 												rootEl.insertBefore(rootNodesList[i], rootNodesList[l]);
-												//rootNodesList = Array.prototype.slice.call(rootEl.children);
+												rootNodesList = Array.prototype.slice.call(rootEl.children);
 												l=i+1;
-												console.log(l, rootNodesList);
-
 											}
-
 										}
 									}
 									nodeList = Array.prototype.slice.call(el.children);
@@ -862,7 +858,6 @@
 										}
 
 									}
-
 								}
 							}
 						}
