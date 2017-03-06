@@ -57,6 +57,7 @@
 		touchEvt,
 
 		moved,
+		changeRootGroup,
 
 		/** @const */
 		RSPACE = /\s+/g,
@@ -604,6 +605,7 @@
 		},
 
 		_onDragStart: function (/**Event*/evt, /**boolean*/useFallback) {
+			console.log('start');
 			var dataTransfer = evt.dataTransfer,
 				options = this.options;
 
@@ -614,6 +616,9 @@
 				_css(cloneEl, 'display', 'none');
 				rootEl.insertBefore(cloneEl, dragEl);
 				_dispatchEvent(this, rootEl, 'clone', dragEl);
+				changeRootGroup = false
+			}else {
+				changeRootGroup = true;
 			}
 
 			_toggleClass(dragEl, options.dragClass, true);
@@ -646,6 +651,7 @@
 		},
 
 		_onDragOver: function (/**Event*/evt) {
+			console.log('over');
 			var el = this.el,
 				target,
 				dragRect,
@@ -815,9 +821,7 @@
 								} else {
 									var prev = dragEl.previousElementSibling;
 									target.parentNode.insertBefore(dragEl, target);
-									console.log('before');
-									//TODO: удаление из списка родителя
-									if (!rootEl.contains(dragEl)) {
+									if (!rootEl.contains(dragEl) && changeRootGroup) {
 										var rootNodesList = Array.prototype.slice.call(rootEl.children), l = oldIndex;
 										for (var i = oldIndex; i < rootNodesList.length; i++) {
 											if (rootNodesList[i].classList.contains('fixed')) {
@@ -828,6 +832,7 @@
 												l=i+1;
 											}
 										}
+										changeRootGroup = false;
 									}
 									nodeList = Array.prototype.slice.call(el.children);
 									if (!domVector) {
