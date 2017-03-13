@@ -790,17 +790,35 @@
 						}
 
 						if (!dragEl.contains(el)) {
+
                             var nodeList = Array.prototype.slice.call( el.children );
 
                             var targetIndex = nodeList.indexOf( target ), sourceIndex = nodeList.indexOf( dragEl ), domVector = targetIndex > sourceIndex;
 
 							if (after && !nextSibling) {
-								el.appendChild(dragEl);
-								nodeList = Array.prototype.slice.call(el.children);
-								for (var i = nodeList.length - 1; i >= sourceIndex; i--) {
-									if (nodeList[i].classList.contains('fixed')) {
-										dragEl.parentNode.insertBefore(nodeList[i + 1], nodeList[i]);
-										nodeList = Array.prototype.slice.call(el.children);
+								if (el.contains(dragEl)) {
+									el.appendChild(dragEl);
+									nodeList = Array.prototype.slice.call(el.children);
+									for (var i = nodeList.length - 1; i >= sourceIndex; i--) {
+										if (nodeList[i].classList.contains('fixed')) {
+											dragEl.parentNode.insertBefore(nodeList[i + 1], nodeList[i]);
+											nodeList = Array.prototype.slice.call(el.children);
+										}
+									}
+								} else {
+									el.appendChild(dragEl);
+									if (changeRootGroup) {
+										var rootNodesList = Array.prototype.slice.call(rootEl.children), l = oldIndex;
+										for (var i = oldIndex; i < rootNodesList.length; i++) {
+											if (rootNodesList[i].classList.contains('fixed')) {
+												continue;
+											} else {
+												rootEl.insertBefore(rootNodesList[i], rootNodesList[l]);
+												rootNodesList = Array.prototype.slice.call(rootEl.children);
+												l=i+1;
+											}
+										}
+										changeRootGroup = false;
 									}
 								}
 							} else {
@@ -852,12 +870,23 @@
 										}
 									} else {
 										if (!prev && rootEl.contains(dragEl)) {
-											console.log('aa');
 											target.parentNode.insertBefore(target, el.firstChild);
 										} else {
-											for (var i = targetIndex; i > sourceIndex; i--) {
-												if (!nodeList[i].classList.contains('fixed')) {
-													target.parentNode.insertBefore(target, nodeList[i - 1]);
+
+											target.parentNode.insertBefore(dragEl, target);
+											nodeList = Array.prototype.slice.call(el.children);
+											if (sourceIndex == -1) {
+												for (var i = targetIndex; i < nodeList.length; i++) {
+													if (nodeList[i].classList.contains('fixed')) {
+														nodeList[i].parentNode.insertBefore(nodeList[i], nodeList[i - 1]);
+														nodeList = Array.prototype.slice.call(el.children);
+													}
+												}
+											} else {
+												for (var i = targetIndex; i > sourceIndex; i--) {
+													if (!nodeList[i].classList.contains('fixed')) {
+														target.parentNode.insertBefore(target, nodeList[i - 1]);
+													}
 												}
 											}
 										}
